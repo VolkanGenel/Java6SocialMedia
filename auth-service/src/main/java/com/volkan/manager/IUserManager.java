@@ -15,8 +15,10 @@ public interface IUserManager {
     public ResponseEntity<Boolean> createUser(@RequestBody NewCreateUserRequestDto dto);
     @GetMapping(ACTIVATESTATUS+"/{authId}")
     public ResponseEntity<Boolean> activateStatus(@PathVariable Long authId);
-    @PutMapping(DEACTIVATESTATUS+"/{authId}")
+    @PutMapping (DEACTIVATESTATUS+"/{authId}")
     public ResponseEntity<Boolean> deactivateStatus(@PathVariable Long authId);
+    @DeleteMapping(DELETEBYID)
+    public ResponseEntity<Boolean> delete (@RequestParam Long id);
 
 }
 

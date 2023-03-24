@@ -7,7 +7,11 @@ import com.volkan.repository.enums.ERole;
 import com.volkan.service.AuthService;
 import com.volkan.utility.JwtTokenManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -40,9 +44,14 @@ import static com.volkan.constants.ApiUrls.*;
 public class AuthController {
     private final AuthService authService;
     private final JwtTokenManager tokenManager;
+    private final CacheManager cachemanager;
     @PostMapping(REGISTER)
     public ResponseEntity<AuthRegisterResponseDto> register(@RequestBody @Valid AuthRegisterRequestDto dto) {
         return ResponseEntity.ok(authService.register(dto));
+    }
+    @PostMapping(REGISTER+2)
+    public ResponseEntity<AuthRegisterResponseDto> registerWithRabbitMq(@RequestBody @Valid AuthRegisterRequestDto dto) {
+        return ResponseEntity.ok(authService.registerWithRabbitMq(dto));
     }
     @PostMapping(LOGIN)
     public ResponseEntity<String> doLogin(@RequestBody DoLoginRequestDto dto) {
@@ -52,6 +61,7 @@ public class AuthController {
     public ResponseEntity<Boolean> activateStatus (@RequestBody ActivateRequestDto dto) {
         return ResponseEntity.ok(authService.activateStatus(dto));
     }
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping(FINDALL)
     public ResponseEntity<List<Auth>> findAll() {
         return ResponseEntity.ok(authService.findAll());
@@ -68,6 +78,7 @@ public class AuthController {
     public ResponseEntity<Long> getIdFromToken(String token) {
         return ResponseEntity.ok(tokenManager.getIdFromToken(token).get());
     }
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/getrolefromtoken")
     public ResponseEntity<String> getRoleFromToken(String token) {
         return ResponseEntity.ok(tokenManager.getRoleFromToken(token).get());
@@ -80,5 +91,38 @@ public class AuthController {
     public ResponseEntity<Boolean> deactivateStatus (@RequestBody DeactivateRequestDto dto) {
         return ResponseEntity.ok(authService.DeactivateStatus(dto));
     }
+    @DeleteMapping(DELETEBYID)
+    public ResponseEntity<Boolean> delete (Long id) {
+        return ResponseEntity.ok(authService.delete(id));
+    }
+    @GetMapping("/redis")
+    @Cacheable(value = "redisexample")
+    public String redisExample(String value) {
+        try {
+            Thread.sleep(2000);
+            return value;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    @GetMapping("/redisdelete")
+    @CacheEvict(cacheNames = "redisexample",allEntries = true)
+    public void redisDelete() {
+    }
 
+    @GetMapping("/redisdelete2")
+    public Boolean redisDelete2() {
+        try {
+           // cachemanager.getCache("redisexample").clear(); //ayn9 isimle cache lenmiş bütün verileri siler
+            cachemanager.getCache("redisexample").evict("mustafa");
+            return true;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+    @GetMapping(FINDBYROLE)
+    public ResponseEntity<List<Long>> findByRole(@RequestParam String role) {
+        return ResponseEntity.ok(authService.findByRole(role));
+    }
 }

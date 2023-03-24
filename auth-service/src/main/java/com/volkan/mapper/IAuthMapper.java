@@ -3,6 +3,8 @@ package com.volkan.mapper;
 import com.volkan.dto.request.AuthRegisterRequestDto;
 import com.volkan.dto.request.NewCreateUserRequestDto;
 import com.volkan.dto.response.AuthRegisterResponseDto;
+import com.volkan.rabbitmq.model.RegisterMailModel;
+import com.volkan.rabbitmq.model.RegisterModel;
 import com.volkan.repository.entity.Auth;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,5 +18,8 @@ public interface IAuthMapper {
     AuthRegisterResponseDto toAuthResponseDto (final Auth auth);
     @Mapping(source = "id",target = "authId")
     NewCreateUserRequestDto toNewCreateUserRequestDto(final Auth auth);
+    @Mapping(source = "id",target = "authId")
+    RegisterModel toRegisterModel(final Auth auth);
 
+    RegisterMailModel toRegisterMailModel(final Auth auth);
 }

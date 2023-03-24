@@ -26,7 +26,11 @@ public class JwtTokenManager {
         String token = null;
         Date date = new Date(System.currentTimeMillis() + (1000 * 60 * 5));
         try {
-            token = JWT.create().withAudience(audience).withIssuer(issuer).withIssuedAt(new Date()).withExpiresAt(date).withClaim("id", id).sign(Algorithm.HMAC512(secretKey));
+            token = JWT.create()
+                    .withAudience(audience)
+                    .withIssuer(issuer).withIssuedAt(new Date())
+                    .withExpiresAt(date).withClaim("id", id)
+                    .sign(Algorithm.HMAC512(secretKey));
             return Optional.of(token);
         } catch (Exception e) {
             System.out.println(e.getMessage());

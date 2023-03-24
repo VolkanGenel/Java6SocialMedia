@@ -1,0 +1,19 @@
+server:
+  port: 8890
+spring:
+  zipkin:
+    enabled: true
+    base-url: http://localhost:9411
+    service:
+      name: config-server-git
+  application:
+    name: config-server-git
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/VolkanGenel/Java6ConfigServer.git
+          default-label: main
+          skip-ssl-validation: true
+          username: VolkanGenel
+          password: ${java6configpassword}
