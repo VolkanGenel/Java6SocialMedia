@@ -84,7 +84,8 @@ public class AuthController {
         return ResponseEntity.ok(tokenManager.getRoleFromToken(token).get());
     }
     @PutMapping(UPDATE)
-    public ResponseEntity<Boolean> updateEmailOrUsername(@RequestBody UpdateEmailOrUsernameRequestDto dto) {
+    public ResponseEntity<Boolean> updateEmailOrUsername(@RequestHeader(value="Authorization") String token,
+                                                         @RequestBody UpdateEmailOrUsernameRequestDto dto) {
         return ResponseEntity.ok(authService.updateEmailOrUsername(dto));
     }
     @DeleteMapping(DEACTIVATESTATUS)
@@ -122,7 +123,8 @@ public class AuthController {
         }
     }
     @GetMapping(FINDBYROLE)
-    public ResponseEntity<List<Long>> findByRole(@RequestParam String role) {
+    public ResponseEntity<List<Long>> findByRole(@RequestHeader(value="Authorization") String token,
+                                                 @RequestParam String role) {
         return ResponseEntity.ok(authService.findByRole(role));
     }
 }

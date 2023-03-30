@@ -16,4 +16,8 @@ public class FallBackController {
     public ResponseEntity<String> userServiceFallback() {
         return ResponseEntity.ok("User service şu anda hizmet verememektedir.");
     }
+    @GetMapping("/postservice")
+    public ResponseEntity<String> postServiceFallback() {
+        return ResponseEntity.ok("Post service şu anda hizmet verememektedir.");
+    }
 }

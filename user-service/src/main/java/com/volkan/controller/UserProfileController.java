@@ -3,10 +3,12 @@ package com.volkan.controller;
 import com.volkan.constants.ApiUrls;
 import com.volkan.dto.request.NewCreateUserRequestDto;
 import com.volkan.dto.request.UpdateUserRequestDto;
+import com.volkan.dto.response.ActivateStatusDto;
 import com.volkan.repository.entity.UserProfile;
 import com.volkan.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,9 +29,9 @@ public class UserProfileController {
         return ResponseEntity.ok(userProfileService.createUser(dto));
     }
 
-    @GetMapping(ACTIVATESTATUS+"/{authId}")
-    public ResponseEntity<Boolean> activateStatus(@PathVariable Long authId) {
-    return ResponseEntity.ok(userProfileService.activateStatus(authId));
+    @GetMapping(ACTIVATESTATUS)
+    public ResponseEntity<Boolean> activateStatus(@RequestHeader(value = "Authorization") String token ) {
+    return ResponseEntity.ok(userProfileService.activateStatus(token));
     }
 
     @PutMapping(UPDATE)
@@ -45,6 +47,7 @@ public class UserProfileController {
         return ResponseEntity.ok(userProfileService.delete(id));
     }
     @GetMapping(FINDALL)
+    @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<List<UserProfile>> findAll() {
         return ResponseEntity.ok(userProfileService.findAll());
     }
@@ -54,7 +57,8 @@ public class UserProfileController {
         return ResponseEntity.ok(userProfileService.findByUsername(username));
     }
     @GetMapping(FINDBYROLE)
-    public ResponseEntity<List<UserProfile>> findByRole(@RequestParam String role) {
-        return ResponseEntity.ok(userProfileService.findByRole(role));
+    public ResponseEntity<List<UserProfile>> findByRole(@RequestHeader(value="Authorization") String token,
+                                                        @RequestParam String role) {
+        return ResponseEntity.ok(userProfileService.findByRole(role,token));
     }
 }

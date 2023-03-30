@@ -3,6 +3,7 @@ package com.volkan.service;
 import com.volkan.dto.request.NewCreateUserRequestDto;
 import com.volkan.dto.request.UpdateEmailOrUsernameRequestDto;
 import com.volkan.dto.request.UpdateUserRequestDto;
+import com.volkan.dto.response.ActivateStatusDto;
 import com.volkan.exception.EErrorType;
 import com.volkan.exception.UserManagerException;
 import com.volkan.manager.IAuthManager;
@@ -66,8 +67,12 @@ public class UserProfileService extends ServiceManager<UserProfile,String> {
 
     }
 
-    public Boolean activateStatus(Long authId) {
-        Optional<UserProfile> userProfile =userProfileRepository.findOptionalByAuthId(authId);
+    public Boolean activateStatus(String token) {
+        Optional<Long> authId = tokenManager.getIdFromToken(token.substring(7));
+        if (authId.isEmpty()) {
+            throw new UserManagerException(EErrorType.INVALID_TOKEN);
+        }
+        Optional<UserProfile> userProfile =userProfileRepository.findOptionalByAuthId(authId.get());
         if (userProfile.isEmpty())
             throw new UserManagerException(EErrorType.USER_NOT_FOUND);
         userProfile.get().setStatus(EStatus.ACTIVE);
@@ -85,11 +90,11 @@ public class UserProfileService extends ServiceManager<UserProfile,String> {
             throw new UserManagerException(EErrorType.USER_NOT_FOUND);
         }
         cacheManager.getCache("findbyusername").evict(userProfile.get().getUsername().toLowerCase());
-        if (dto.getUsername().equals(userProfile.get().getUsername())||!dto.getEmail().equals(userProfile.get().getEmail())) {
+        if (!dto.getUsername().equals(userProfile.get().getUsername())||!dto.getEmail().equals(userProfile.get().getEmail())) {
             userProfile.get().setUsername(dto.getUsername());
             UpdateEmailOrUsernameRequestDto updateEmailOrUsernameRequestDto = IUserMapper.INSTANCE.toUpdateEmailOrUsernameRequestDto(dto);
             updateEmailOrUsernameRequestDto.setAuthId(authId.get());
-            authManager.updateEmailOrUsername(updateEmailOrUsernameRequestDto);
+            authManager.updateEmailOrUsername("Bearer "+dto.getToken(), updateEmailOrUsernameRequestDto);
         }
         userProfile.get().setPhone(dto.getPhone());
         userProfile.get().setAvatar(dto.getAvatar());
@@ -132,17 +137,21 @@ public class UserProfileService extends ServiceManager<UserProfile,String> {
     }
 
     @Cacheable(value = "findbyrole", key = "#role.toUpperCase()")
-    public List<UserProfile> findByRole(String role) {
+    public List<UserProfile> findByRole(String role,String token) {
         try{
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        List<Long> authIds = authManager.findByRole(role).getBody();
+        List<Long> authIds = authManager.findByRole(token,role).getBody();
         //ResponseEntity<List<Long>> authIds2 = authManager.findByRole(role);
 
         return authIds.stream().map(x-> userProfileRepository.findOptionalByAuthId(x)
                 .orElseThrow(()->{throw new UserManagerException(EErrorType.USER_NOT_FOUND);}))
                 .collect(Collectors.toList());
+    }
+
+    public Optional<UserProfile> findByAuthId(Long authId) {
+        return userProfileRepository.findOptionalByAuthId(authId);
     }
 }

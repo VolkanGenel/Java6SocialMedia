@@ -3,7 +3,7 @@ server:
 spring:
   zipkin:
     enabled: true
-    base-url: http://localhost:9411
+    base-url: ${zipkin_url}
     service:
       name: config-server-git
   application:
@@ -12,8 +12,8 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/VolkanGenel/Java6ConfigServer.git
+          uri: ${java6configuri}
           default-label: main
           skip-ssl-validation: true
-          username: VolkanGenel
+          username: ${java6configusername}
           password: ${java6configpassword}

@@ -16,6 +16,7 @@ import com.volkan.utility.CodeGenerator;
 import com.volkan.utility.JwtTokenManager;
 import com.volkan.utility.ServiceManager;
 import org.springframework.cache.CacheManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -32,8 +33,9 @@ public class AuthService extends ServiceManager<Auth,Long> {
     private final CacheManager cacheManager;
     private final RegisterProducer registerProducer;
     private final RegisterMailProducer mailProducer;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(IAuthRepository authRepository, IUserManager userManager, JwtTokenManager tokenManager, CacheManager cacheManager, RegisterProducer registerProducer, RegisterMailProducer mailProducer) {
+    public AuthService(IAuthRepository authRepository, IUserManager userManager, JwtTokenManager tokenManager, CacheManager cacheManager, RegisterProducer registerProducer, RegisterMailProducer mailProducer, PasswordEncoder passwordEncoder) {
         super(authRepository);
         this.authRepository = authRepository;
         this.userManager= userManager;
@@ -41,6 +43,7 @@ public class AuthService extends ServiceManager<Auth,Long> {
         this.cacheManager = cacheManager;
         this.registerProducer = registerProducer;
         this.mailProducer = mailProducer;
+        this.passwordEncoder = passwordEncoder;
     }
     @Transactional
     public AuthRegisterResponseDto register(AuthRegisterRequestDto dto) {
@@ -70,12 +73,14 @@ public class AuthService extends ServiceManager<Auth,Long> {
     public AuthRegisterResponseDto registerWithRabbitMq(AuthRegisterRequestDto dto) {
 //        if (authRepository.isUsername(dto.getUsername()))
 //            throw new AuthServiceException(EErrorType.REGISTER_ERROR_USERNAME);
+        dto.setPassword(passwordEncoder.encode(dto.getPassword()));
         Auth auth = IAuthMapper.INSTANCE.toAuth(dto);
         /**
          * Repo -> repository.save(auth); bu bana kaydettiği entityi döner
          * Servi -> save(auth); bu da bana kaydettiği entityi döner
          * direkt -> auth, bir şekilde kayıt edilen entity nin bilgileri istenir ve bunu döner.
          */
+
         auth.setActivationCode(CodeGenerator.generateCode());
 
         try {
@@ -94,8 +99,10 @@ public class AuthService extends ServiceManager<Auth,Long> {
     }
 
     public String doLogin(DoLoginRequestDto dto) {
-            Optional<Auth> auth = authRepository.findOptionalByUsernameAndPassword(dto.getUsername(), dto.getPassword());
-            if (auth.isEmpty())
+            Optional<Auth> auth = authRepository.findOptionalByUsername(dto.getUsername());
+            System.out.println(auth.get().getPassword());
+            System.out.println(passwordEncoder.encode(dto.getPassword()));
+            if (auth.isEmpty() || !passwordEncoder.matches(dto.getPassword(), auth.get().getPassword()))
                 throw new AuthManagerException(EErrorType.LOGIN_ERROR);
             if (!auth.get().getStatus().equals(EStatus.ACTIVE))
                 throw new AuthManagerException(EErrorType.ACCOUNT_NOT_ACTIVE);
@@ -110,7 +117,9 @@ public class AuthService extends ServiceManager<Auth,Long> {
         if(dto.getActivationCode().equals(auth.get().getActivationCode())) {
             auth.get().setStatus(EStatus.ACTIVE);
             update(auth.get());
-            userManager.activateStatus(auth.get().getId());
+            // user service e istek atılacak
+            String token = tokenManager.createToken(auth.get().getId(),auth.get().getRole()).get();
+            userManager.activateStatus("Bearer "+token);
             return true;
         } else {
             throw new AuthManagerException(EErrorType.ACTIVATE_CODE_ERROR);

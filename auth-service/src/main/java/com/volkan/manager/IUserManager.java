@@ -3,6 +3,8 @@ package com.volkan.manager;
 
 
 import static com.volkan.constants.ApiUrls.*;
+
+import com.volkan.dto.request.ActivateStatusDto;
 import com.volkan.dto.request.NewCreateUserRequestDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ public interface IUserManager {
     public ResponseEntity<Boolean> deactivateStatus(@PathVariable Long authId);
     @DeleteMapping(DELETEBYID)
     public ResponseEntity<Boolean> delete (@RequestParam Long id);
+    @GetMapping(ACTIVATESTATUS)
+    public ResponseEntity<Boolean> activateStatus(@RequestHeader(value = "Authorization") String token );
 
 }
 

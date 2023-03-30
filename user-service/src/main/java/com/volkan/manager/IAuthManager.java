@@ -14,7 +14,8 @@ import static com.volkan.constants.ApiUrls.*;
 @FeignClient(url="http://localhost:7071/api/v1/auth",decode404 = true,name = "userprofile-auth")
 public interface IAuthManager {
     @PutMapping(UPDATE)
-    public ResponseEntity<Boolean> updateEmailOrUsername(@RequestBody UpdateEmailOrUsernameRequestDto dto);
+    public ResponseEntity<Boolean> updateEmailOrUsername(@RequestHeader(value="Authorization") String token, @RequestBody UpdateEmailOrUsernameRequestDto dto);
     @GetMapping(FINDBYROLE)
-    public ResponseEntity<List<Long>> findByRole(@RequestParam String role);
+    public ResponseEntity<List<Long>> findByRole(@RequestHeader(value="Authorization") String token,
+                                                 @RequestParam String role);
 }

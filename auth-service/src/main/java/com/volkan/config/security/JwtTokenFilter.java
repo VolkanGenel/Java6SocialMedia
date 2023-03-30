@@ -27,8 +27,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             final String authorizationHeader = request.getHeader("Authorization");
             System.out.println("===>"+authorizationHeader);
 
-            if (authorizationHeader!=null && authorizationHeader.startsWith("Bearer ") &&
-                    SecurityContextHolder.getContext().getAuthentication()==null) {
+            if (authorizationHeader!=null && authorizationHeader.startsWith("Bearer ")) {
                 String token = authorizationHeader.substring(7);
                 Optional<Long> id = jwtTokenManager.getIdFromToken(token);
                 if(id.isPresent()) {

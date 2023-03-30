@@ -16,6 +16,7 @@ public enum EErrorType {
     USER_NOT_FOUND(4211,"Böyle bie kullanıcı bulunamadı",HttpStatus.NOT_FOUND),
     USER_NOT_CREATED(4212,"Kullanıcı oluşturulamadı",HttpStatus.BAD_REQUEST),
     INVALID_TOKEN(4213,"Geçersiz Token",HttpStatus.BAD_REQUEST),
+    FOLLOW_REQUEST_ALREADY_EXISTS(4214,"Böyle bir takip isteği daha önce oluşturulmuştur",HttpStatus.BAD_REQUEST),
 
 
     ;

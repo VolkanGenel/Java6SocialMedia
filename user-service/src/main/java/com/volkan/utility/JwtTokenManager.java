@@ -32,9 +32,6 @@ public class JwtTokenManager {
             return Optional.empty();
         }
     }
-
-
-
     public Boolean validateToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC512(secretKey);

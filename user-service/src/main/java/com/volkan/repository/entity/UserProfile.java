@@ -6,6 +6,9 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @SuperBuilder // Builder, bir sınıftan nesne türetmek için özel oluşturulmuş bir method
 @Data // Data,get, set methodlarını tanımlar
@@ -22,8 +25,11 @@ public class UserProfile extends BaseEntity{
     private String avatar;
     private String adres;
     private String about;
-
     @Builder.Default()
     private EStatus status = EStatus.PENDING;
+    @Builder.Default()
+    private List<String> follows = new ArrayList<>();
+    @Builder.Default()
+    private List<String> follower = new ArrayList<>();
 
 }
